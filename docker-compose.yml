@@ -1,0 +1,87 @@
+version: '3.8'
+services:
+  laravel.test:
+    build:
+      context: ./docker/laravel
+      dockerfile: Dockerfile
+      args:
+        WWWGROUP: ''
+    image: laravel-app
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    ports:
+      - '80:80'
+      - '5173:5173' # Vite HMR
+    environment:
+      WWWUSER: ''
+      LARAVEL_SENTRY_DSN: ''
+      VITE_APP_NAME: ''
+      APP_URL: ''
+      DB_HOST: pgsql
+      DB_PORT: 5432
+      DB_DATABASE: ''
+      DB_USERNAME: ''
+      DB_PASSWORD: ''
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ''
+      QUEUE_CONNECTION: redis
+      FASTAPI_URL: http://fastapi:8000
+    volumes:
+      - './laravel:/var/www/html'
+    networks:
+      - explainmydatabase-network
+    depends_on:
+      - pgsql
+      - redis
+      - fastapi
+
+  pgsql:
+    image: 'postgres:15'
+    ports:
+      - ':5432'
+    environment:
+      PGPASSWORD: ''
+      POSTGRES_DB: ''
+      POSTGRES_USER: ''
+      POSTGRES_PASSWORD: ''
+    volumes:
+      - 'db-data:/var/lib/postgresql/data'
+    networks:
+      - explainmydatabase-network
+
+  redis:
+    image: 'redis:alpine'
+    ports:
+      - ':6379'
+    networks:
+      - explainmydatabase-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      retries: 3
+      timeout: 5s
+
+  fastapi:
+    build:
+      context: ./docker/fastapi
+      dockerfile: Dockerfile
+    image: fastapi-app
+    ports:
+      - '8000:8000'
+    environment:
+      PYTHONUNBUFFERED: 1
+      LLM_API_KEY: ''
+    volumes:
+      - './fastapi:/app'
+    networks:
+      - explainmydatabase-network
+    depends_on:
+      - redis # FastAPI might need Redis for caching or other purposes
+
+networks:
+  explainmydatabase-network:
+    driver: bridge
+
+volumes:
+  db-data:
+    driver: local

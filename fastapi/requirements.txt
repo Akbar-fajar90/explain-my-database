@@ -1,0 +1,4 @@
+fastapi
+uvicorn
+python-multipart
+# Add LLM client library here later (e.g., openai, google-generativeai)
