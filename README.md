@@ -43,7 +43,7 @@
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/explainmydatabase.git
+   git clone https://github.com/Akbar-fajar90/explainmydatabase.git
    cd explainmydatabase
    ```
 2. Build and run containers:
